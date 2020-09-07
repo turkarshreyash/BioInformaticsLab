@@ -1,0 +1,18 @@
+BT17CSE026
+Language: C
+
+Algo: Naive Pattern Search
+Space Complexity: O(1)
+Time Complexity: O(m*n) [m = lenghtOfPattern, n = lenghtOfFile]
+
+How to run the code?
+
+Step 1: gcc naiveStringMatch.c
+Step 2: ./a.out <pattern> <fileName> 
+
+
+Example:
+shreyash@innety:~/Documents/mySpace$ gcc naiveStringMatch.c
+shreyash@innety:~/Documents/mySpace$ ./a.out TGATCA  DNA.txt
+
+-----------------------------------------------------------------------------------------------------
