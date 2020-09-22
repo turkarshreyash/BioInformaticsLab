@@ -1,0 +1,40 @@
+EnrollNumber: BT17CSE026
+Lang: C/C++
+
+
+I am running KMP algorithm for both the patterns and I am storing starting index of match.
+
+Then I am running this algo:
+
+while (index1 < found1.size() && index2 < found2.size())
+    {
+        startsAt1 = found1[index1];
+        startsAt2 = found2[index2];
+        endsAt1 = startsAt1 + lenghtOfPatttern;
+        endsAt2 = startsAt2 + lenghtOfPatttern;
+        if (startsAt1 <= startsAt2)
+        {
+            if (endsAt1 < startsAt2)
+            {
+                // index1++;
+            }
+            else
+            {
+                OUT("Overlap at P1:%d, P2:%d", startsAt1, startsAt2);
+            }
+            index1++;
+        }
+        else
+        {
+            if (endsAt2 < startsAt1)
+            {
+                // index2++;
+            }
+            else
+            {
+                OUT("Overlap at P1:%d, P2:%d", startsAt1, startsAt2);
+            }
+            index2++;
+        }
+    }
+

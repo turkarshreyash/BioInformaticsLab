@@ -2,7 +2,9 @@
 #include <inttypes.h>
 #include <cstring>
 #include <string.h>
+#include <chrono>
 #include <vector>
+#include <set>
 
 //mini logger
 #define ERROR(S, ...)             \
@@ -74,12 +76,12 @@ void generateLPS(char *pattern, int *lps, int lenOfPattern)
 
 int main(int argc, char *args[])
 {
-    if (argc < 3 || argc > 3)
+    if (argc < 4 || argc > 4)
     {
         ERROR("Incorrect Number Of Arguments");
         exit(0);
     }
-    char *fileName = args[2];
+    char *fileName = args[3];
     INFO("Opening File %s", fileName);
     FILE *file = fopen(fileName, "r");
     if (file == NULL)
@@ -90,19 +92,28 @@ int main(int argc, char *args[])
     SUCCESS("Opened File %s", fileName);
     fseek(file, 0, SEEK_END);
     int lenghtOfFile = ftell(file);
-    INFO("Lenght Of File: %intd", lenghtOfFile);
+    INFO("Lenght Of File: %d", lenghtOfFile);
     fseek(file, 0, SEEK_SET);
     char *pattern = args[1];
+    char *pattern2 = args[2];
     int lenghtOfPatttern = strlen(pattern);
     INFO("Patter: %s", pattern);
     INFO("Pattern Lenght: %d", lenghtOfPatttern);
+    int lenghtOfPatttern2 = strlen(pattern2);
+    INFO("Patter: %s", pattern2);
+    INFO("Pattern Lenght: %d", lenghtOfPatttern2);
     INFO("Computing LPS");
     int *lps = new int[lenghtOfPatttern];
     generateLPS(pattern, lps, lenghtOfPatttern);
+    int *lps2 = new int[lenghtOfPatttern2];
+    generateLPS(pattern2, lps2, lenghtOfPatttern2);
     SUCCESS("Computed LPS");
     int patternFound;
     char fchar;
-    INFO("Starting KMP Pattern Match");
+    auto start = std::chrono::high_resolution_clock::now();
+    std::vector<int> found1;
+    std::vector<int> found2;
+    INFO("Starting KMP Pattern Match For Pattern1");
     int pp;
     for (int fp = 0; fp <= lenghtOfFile - lenghtOfPatttern;)
     {
@@ -121,15 +132,92 @@ int main(int argc, char *args[])
 
         if (patternFound == 1)
         {
-            OUT("Pattern Found At %d", fp);
+            OUT("Pattern1 Found At %d", fp);
+            found1.push_back(fp);
             fp += lenghtOfPatttern;
         }
         else
         {
-            // fp++;
-            fp += lps[pp];
+            fp ++;
             fseek(file, fp, SEEK_SET);
         }
     }
-    INFO("KMP Pattern Search Terminated");
+
+    INFO("Starting KMP Pattern Match For Pattern2");
+    fseek(file, 0, SEEK_SET);
+    for (int fp = 0; fp <= lenghtOfFile - lenghtOfPatttern2;)
+    {
+        fchar = fgetc(file);
+        patternFound = 1;
+
+        for (pp = 0; pp < lenghtOfPatttern2; pp++)
+        {
+            if (fchar != pattern2[pp])
+            {
+                patternFound = 0;
+                break;
+            }
+            fchar = fgetc(file);
+        }
+
+        if (patternFound == 1)
+        {
+            OUT("Pattern2 Found At %d", fp);
+            found2.push_back(fp);
+            fp += lenghtOfPatttern2;
+        }
+        else
+        {
+            fp++;
+            // fp += lps2[pp];
+            fseek(file, fp, SEEK_SET);
+        }
+    }
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+    INFO("KMP Pattern Search Terminated: %ld", duration.count());
+    INFO("Starting Overlap Searching");
+    int startsAt1, endsAt1, startsAt2, endsAt2;
+    int index1 = 0, index2 = 0;
+    if (found1.size() < 0 && found2.size() < 0)
+    {
+        OUT("No Over Lapping");
+        exit(0);
+    }
+
+    while (index1 < found1.size() && index2 < found2.size())
+    {
+        startsAt1 = found1[index1];
+        startsAt2 = found2[index2];
+        endsAt1 = startsAt1 + lenghtOfPatttern;
+        endsAt2 = startsAt2 + lenghtOfPatttern;
+        if (startsAt1 <= startsAt2)
+        {
+            if (endsAt1 < startsAt2)
+            {
+                // index1++;
+            }
+            else
+            {
+                OUT("Overlap at P1:%d, P2:%d", startsAt1, startsAt2);
+            }
+            index1++;
+        }
+        else
+        {
+            if (endsAt2 < startsAt1)
+            {
+                // index2++;
+            }
+            else
+            {
+                OUT("Overlap at P1:%d, P2:%d", startsAt1, startsAt2);
+            }
+            index2++;
+        }
+    }
+    INFO("Overlap Search Complete");
+
 }
